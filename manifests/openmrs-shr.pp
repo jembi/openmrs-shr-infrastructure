@@ -6,17 +6,10 @@ Exec {
     user => 'root',
 }
 
-# Add an apt cacher server
-exec { "Configure apt-cacher proxy":
-    command => "echo \"Acquire::http::Proxy \\\"http://192.168.1.53:3142\\\";\" > /etc/apt/apt.conf.d/01JembiServerproxy",
-    user => "root",
-}
-
 # Make sure package index is updated (when referenced by require)
 exec { "apt-get update":
     command => "apt-get update",
     user => "root",
-    require => Exec["Configure apt-cacher proxy"]
 }
 
 # Install these packages after apt-get update
@@ -83,9 +76,16 @@ $udOmod = "/home/vagrant/openmrs-module-shr-unstructureddata/omod/target/*.omod"
 $chOmod = "/home/vagrant/openmrs-module-shr-contenthandler/omod/target/*.omod"
 $restOmod = "/home/vagrant/openmrs-module-shr-rest/omod/target/*.omod"
 
+exec { "fetch-webservices-module":
+    command => "wget -P /vagrant/artifacts/ https://modules.openmrs.org/modulus/api/releases/1029/download/webservices.rest-2.5.e52eb0.omod",
+    creates => "/vagrant/artifacts/webservices.rest-2.5.e52eb0.omod",
+    timeout => 0,
+}
+
 exec { "copy-modules":
-    command => "cp /vagrant/artifacts/*.omod ${cdaOmod} ${udOmod} ${chOmod} ${restOmod} /usr/share/tomcat6/.OpenMRS/modules/",
-    require => [ Exec["setup-openmrs-dir-permissions"],
+    command => "cp -f /vagrant/artifacts/*.omod ${cdaOmod} ${udOmod} ${chOmod} ${restOmod} /usr/share/tomcat6/.OpenMRS/modules/",
+    user => "tomcat6",
+    require => [ Exec["setup-openmrs-dir-permissions"], Exec["fetch-webservices-module"],
         Exec["openmrs-module-shr-cdahandler"], Exec["openmrs-module-shr-unstructureddata"],
         Exec["openmrs-module-shr-contenthandler"], Exec["openmrs-module-shr-rest"] ]
 }
@@ -100,7 +100,8 @@ exec { "fetch-openmrs-war":
 
 exec { "copy-webapp":
     command => "cp /vagrant/artifacts/openmrs.war /var/lib/tomcat6/webapps/",
-    require => [ Package["tomcat6"], Exec["fetch-openmrs-war"] ]
+    require => [ Package["tomcat6"], Exec["fetch-openmrs-war"], Exec["apply-db-dump"],
+        Exec["openmrs-user-privileges"], Exec["copy-modules"] ]
 }
 
 # Database
@@ -116,6 +117,12 @@ exec { "mysqlpass":
     require => Service["mysql"]
 }
 
+exec { "openmrs-user-password":
+    alias => "mysqluserpass",
+	command => "mysql -uroot -p${mysql_password} -e \"CREATE USER 'openmrs_user'@'localhost' IDENTIFIED BY 'jkH4rX0PORA3';\"",
+    require => Exec["mysqlpass"]
+}
+
 exec { "gunzip-db-dump":
     command => "gunzip -c /vagrant/artifacts/openmrs.sql.gz > /tmp/openmrs.sql",
 }
@@ -124,6 +131,11 @@ exec { "create-openmrs-db":
     unless => "mysql -uroot -p${mysql_password} openmrs",
     command => "mysql -uroot -p${mysql_password} -e \"create database openmrs;\"",
     require => [ Service["mysql"], Exec["mysqlpass"] ],
+}
+
+exec { "openmrs-user-privileges":
+	command => "mysql -uroot -p${mysql_password} -e \"GRANT ALL PRIVILEGES ON openmrs.* TO 'openmrs_user'@'localhost';\"",
+	require => [ Exec["openmrs-user-password"], Exec["create-openmrs-db"] ]
 }
 
 exec { "apply-db-dump":
@@ -148,10 +160,4 @@ exec { "setup-openmrs-dir-permissions":
     cwd => "/usr/share/tomcat6",
     command => "chown -R tomcat6:tomcat6 .OpenMRS",
     require => Exec["setup-openmrs-conf"]
-}
-
-service { "tomcat6":
-    restart => true,
-    require => [ Exec["copy-modules"], Exec["copy-webapp"], Exec["copy-catalina-sh"],
-        Exec["setup-openmrs-dir-permissions"], Exec["apply-db-dump"] ]
 }
