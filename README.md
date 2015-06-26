@@ -11,7 +11,7 @@ git clone https://github.com/jembi/openmrs-shr-infrastructure.git
 cd openmrs-shr-infrastructure
 vagrant up
 ```
-After launching, the SHR will be available on `http://localhost:8082/openmrs`. The default login is `admin` using the password `OpenMRS123`.
+After launching, the SHR will be available on `http://localhost:8082/openmrs`. The default login is `admin` using the password `OpenSHR#123`.
 
 Links
 -----

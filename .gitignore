@@ -1,4 +1,4 @@
 .vagrant/
 artifacts/*.omod
-artifacts/openmrs.sql.gz
-
+artifacts/*.gz
+artifacts/openmrs.war

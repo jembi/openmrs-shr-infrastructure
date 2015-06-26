@@ -21,7 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     shell.inline = "echo \"Acquire::http::Proxy \\\"http://192.168.1.53:3142\\\";\nAcquire::http::Proxy { download.oracle.com DIRECT; }\" > /etc/apt/apt.conf.d/01JembiServerproxy;
       sudo add-apt-repository ppa:webupd8team/java -y;
       sudo apt-get update"
-    # shell.inline = "sudo add-apt-repository ppa:webupd8team/java -y \
+    # shell.inline = "sudo add-apt-repository ppa:webupd8team/java -y;
     #   sudo apt-get updatesudo apt-get update";
   end
 

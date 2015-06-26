@@ -51,19 +51,19 @@ exec { "fetch-webservices-module":
 }
 
 exec { "fetch-contenthandler-module":
-  command => "wget -P /vagrant/artifacts/ https://github.com/jembi/openmrs-module-shr-contenthandler/releases/download/v2.2.0/shr-contenthandler-2.2.0.omod",
-  creates => "/vagrant/artifacts/shr-contenthandler-2.2.0.omod",
+  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-contenthandler-3.0.0-SNAPSHOT.omod",
+  creates => "/vagrant/artifacts/shr-contenthandler-3.0.0-SNAPSHOT.omod",
   timeout => 0
 }
 
 exec { "fetch-odd-module":
-  command => "wget -P /vagrant/artifacts/ https://github.com/jembi/openmrs-module-shr-odd/releases/download/v0.5.1/shr-odd-0.5.1.omod",
+  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-odd-0.5.1.omod",
   creates => "/vagrant/artifacts/shr-odd-0.5.1.omod",
   timeout => 0
 }
 
 exec { "fetch-cdahandler-module":
-  command => "wget -P /vagrant/artifacts/ https://github.com/jembi/openmrs-module-shr-cdahandler/releases/download/v0.6.0/shr-cdahandler-0.6.0.omod",
+  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-cdahandler-0.6.0.omod",
   creates => "/vagrant/artifacts/shr-cdahandler-0.6.0.omod",
   timeout => 0
 }
@@ -83,7 +83,7 @@ exec { "copy-modules":
 
 # Install OpenMRS
 exec { "fetch-openmrs-war":
-  command => "wget -O /vagrant/artifacts/openmrs.war http://sourceforge.net/projects/openmrs/files/releases/OpenMRS_1.9.7/openmrs.war/download",
+  command => "wget -O /vagrant/artifacts/openmrs.war https://s3.amazonaws.com/openshr/openmrs.war",
   creates => "/vagrant/artifacts/openmrs.war",
   timeout => 0
 }
@@ -94,7 +94,13 @@ exec { "copy-webapp":
     Exec["openmrs-user-privileges"], Exec["copy-modules"] ]
 }
 
-# Initialise Database
+exec { "setup-webapp-permissions":
+  cwd => "/var/lib/tomcat7/webapps/",
+  command => "chown -R tomcat7:tomcat7 openmrs.war",
+  require => Exec["copy-webapp"]
+}
+
+# Initialise database
 exec { "fetch-database":
   command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/openmrs.sql.gz",
   creates => "/vagrant/artifacts/openmrs.sql.gz",
@@ -140,15 +146,21 @@ exec { "apply-db-dump":
 }
 
 # Tomcat and OpenMRS app configuration
+exec { "fetch-openmrs-conf":
+  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/openmrs-conf-dir.tar.gz",
+  creates => "/vagrant/artifacts/openmrs-conf-dir.tar.gz",
+  timeout => 0
+}
+
 exec { "setup-openmrs-conf":
   cwd => "/usr/share/tomcat7",
   command => "tar -xzf /vagrant/artifacts/openmrs-conf-dir.tar.gz",
-  require => Package["tomcat7"]
+  require => [ Package["tomcat7"], Exec["fetch-openmrs-conf"] ]
 }
 
 exec { "setup-openmrs-dir-permissions":
   cwd => "/usr/share/tomcat7",
-  command => "chown -R tomcat7:tomcat7 .OpenMRS",
+  command => "chown -R tomcat7:tomcat7 .",
   require => Exec["setup-openmrs-conf"]
 }
 
