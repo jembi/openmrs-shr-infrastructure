@@ -180,3 +180,14 @@ file { "/usr/share/tomcat7/bin/setenv.sh":
   require => Package["tomcat7"],
   notify  => Service["tomcat7"]
 }
+
+# Setup document directory
+exec { "setup-document-directory":
+  command => "sudo mkdir -p /var/lib/tomcat7/null/xdslog/sentMessages",
+  require => Package["tomcat7"]
+}
+
+exec { "setup-document-permissions":
+  command => "sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/null",
+  require => Exec["setup-document-directory"]
+}
