@@ -1,0 +1,19 @@
+#!/bin/bash
+
+. /usr/share/debconf/confmodule 
+
+db_input critical openshr/mysqlHost || true
+db_input critical openshr/mysqlPort || true
+db_input critical openshr/mysqlUser || true
+db_input critical openshr/mysqlPass || true
+
+db_input critical openshr/mysqlDBExists || true
+db_go || true
+
+db_get openshr/mysqlDBExists
+if [ "$RET" = "true" ]; then
+    db_input critical openshr/mysqlDBName || true
+else
+    db_input critical openshr/mysqlDBNameNew || true
+fi
+db_go || true

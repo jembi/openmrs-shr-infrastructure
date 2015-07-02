@@ -1,0 +1,34 @@
+Template: openshr/mysqlHost
+Type: string
+Default: localhost
+Description: Enter the MySQL server host:
+
+Template: openshr/mysqlPort
+Type: string
+Default: 3306
+Description: Enter the MySQL server port:
+
+Template: openshr/mysqlUser
+Type: string
+Default: root
+Description: Enter the username of a MySQL user that has administrative privileges:
+
+Template: openshr/mysqlPass
+Type: password
+Default:
+Description: Enter password:
+
+Template: openshr/mysqlDBExists
+Type: boolean
+Default: false
+Description: Would you like to use an existing database for the OpenSHR?
+
+Template: openshr/mysqlDBName
+Type: string
+Default: openshr
+Description: Enter the OpenSHR database name:
+
+Template: openshr/mysqlDBNameNew
+Type: string
+Default: openshr
+Description: A new OpenSHR database will be initialized. Enter a name for the database:
