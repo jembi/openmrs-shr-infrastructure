@@ -11,6 +11,10 @@ package { "build-essential":
   ensure => latest
 }
 
+package { "debhelper":
+  ensure => latest
+}
+
 package { "devscripts":
   ensure => latest
 }

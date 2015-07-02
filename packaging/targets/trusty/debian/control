@@ -9,13 +9,11 @@ Homepage: https://github.com/jembi/openshr
 
 Package: openshr
 Architecture: all
-Depends: oracle-java8-installer, mysql-client, mysql-server
+Depends: oracle-java8-installer, mysql-client, mysql-server, debconf
 Recommends: 
-Description: OpenSHR
- The OpenSHR is a shared health record (SHR) that allows clinical data to be stored in a central location within a health information exchange (HIE).
- OpenSHR implements the IHE XDS.b profile for receiving and retrieving clinical documents about a particular patient.
- Some of the important features include:
- - Supports storage of data discretely of supported CDA documents
- - Supports on-demand documents
- - Extensible CDA documents support
- The OpenSHR features as part of the OpenHIE initiative (http://ohie.org)
+Description: OpenHIE Shared Health Record for storing patient clinical data
+ The OpenSHR is a shared health record (SHR) that allows clinical data to be
+ stored in a central location within a health information exchange (HIE).
+ OpenSHR implements the IHE XDS.b profile for receiving and retrieving
+ clinical documents about a particular patient. The OpenSHR features as part
+ of the OpenHIE initiative (http://ohie.org).

@@ -1,7 +1,8 @@
 OpenSHR Ubuntu Packaging
 ========================
 
-Ubuntu packaging scripts.
+Ubuntu packaging scripts. Currently supports:
+* 14.04 Trusty
 
 Packaging Process
 =================
@@ -13,14 +14,15 @@ The following is the process to follow for packaging and releasing a new OpenSHR
 * `cd ..`
 * `vagrant up`
 * `vagrant ssh`
-* `> cd /vagrant/packaging`
 * Edit `targets/{target}/debian/control` and change *Maintainer* to yourself. This step isn't necessary, but it's good to keep an accurate log of the person doing the release.
-* If uploading to LaunchPad, you should create or import a GPG key for signing the package:
+* If uploading to Launchpad, you should create or import a GPG key for signing the package:
   * https://help.launchpad.net/YourAccount/ImportingYourPGPKey
   * If using an existing key, import it into your Vagrant instance
-* Run the packaging script: `./create-deb.sh`
+* Run the packaging script:
+  * `cd /vagrant/packaging`
+  * `./create-deb.sh`
 
-When running the script, you will be asked whether you want to upload the build(s) to LaunchPad. The OpenHIE PPA (https://launchpad.net/~openhie) should be used for all official releases.
+When running the script, you will be asked whether you want to upload the build(s) to Launchpad. The OpenHIE PPA (https://launchpad.net/~openhie) should be used for all official releases.
 
 After completing, the build number will be bumped and the build logged to `target/{target}/debian/changelog`. Commit the updated changelog(s) to GitHub on the master branch.
 
@@ -28,4 +30,4 @@ The new packages will be available in the `packaging/builds` directory.
 
 Java 8 PPA
 ==========
-The package depends on Java 8 provided by the webupd8 team: http://www.webupd8.org/2012/09/install-oracle-java-8-in-ubuntu-via-ppa.html
+The package depends on Java 8 provided by the webupd8 team PPA `ppa:webupd8team/java`

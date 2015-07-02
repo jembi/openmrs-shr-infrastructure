@@ -25,6 +25,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #   sudo apt-get updatesudo apt-get update";
   end
 
+  # Setup LC_ALL locale flag
+  config.vm.provision :shell do |shell|
+    shell.inline = "echo 'LC_ALL=\"en_US.UTF-8\"' >> /etc/default/locale"
+  end
+
   config.vm.provision :puppet do |puppet|
     puppet.manifests_path = "manifests"
     puppet.manifest_file  = "openmrs-shr.pp"
