@@ -4,8 +4,6 @@
 #Exit on error
 set -e
 
-PPA=release
-
 
 if [ ! `uname -n` = "vagrant-ubuntu-trusty-64" ]; then
     echo
@@ -70,6 +68,9 @@ if [[ "$UPLOAD" == "y" || "$UPLOAD" == "Y" ]];  then
       echo "To set a key for signing do: export DEB_SIGN_KEYID=<KEYID>"
       echo "Use gpg --list-keys to see the available keys"
     fi
+
+    echo -n "Enter the name of the PPA: "
+    read PPA
 fi
 
 
@@ -91,7 +92,6 @@ do
 
 
     PKGDIR=${BUILDDIR}/${BUILD}
-    CHANGES=${BUILDDIR}/${BUILD}_all.changes
     OPENSHRDIR=$PKGDIR/usr/share/openshr
 
     cd $TARGETDIR
@@ -126,8 +126,12 @@ do
 
 
     cd $PKGDIR
-    if [[ "$UPLOAD" == "y" || "$UPLOAD" == "Y" ]] && [[ -n "${DEB_SIGN_KEYID}" && -n "{$LAUNCHPADLOGIN}" ]]; then
-        DPKGCMD="dpkg-buildpackage -k${DEB_SIGN_KEYID}  -S -sa -A "
+    if [[ "$UPLOAD" == "y" || "$UPLOAD" == "Y" ]] && [[ -n "${DEB_SIGN_KEYID}" && -n "{$LAUNCHPADPPALOGIN}" ]]; then
+        echo "Uploading to PPA ${LAUNCHPADPPALOGIN}/${PPA}"
+
+        CHANGES=${BUILDDIR}/${BUILD}_source.changes
+
+        DPKGCMD="dpkg-buildpackage -rfakeroot -k${DEB_SIGN_KEYID}  -S -sa "
         $DPKGCMD
         DPUTCMD="dput ppa:$LAUNCHPADPPALOGIN/$PPA  $CHANGES"
         $DPUTCMD

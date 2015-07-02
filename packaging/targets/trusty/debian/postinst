@@ -60,7 +60,7 @@ db_set openshr/mysqlPass ""
 
 
 echo "Setting required directories and permissions ..."
-# needed for xds module
+# really ugly /null dir needed for xds module
 mkdir -p /null/xdslog/sentMessages
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openmrs
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/tomcat

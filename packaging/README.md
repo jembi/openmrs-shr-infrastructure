@@ -14,7 +14,10 @@ The following is the process to follow for packaging and releasing a new OpenSHR
 * `vagrant up`
 * `vagrant ssh`
 * `> cd /vagrant/packaging`
-* Edit `targets/{target}/debian/control` and change *Maintainer* to yourself. This step isn't nescessary, but it's good to keep an accurate log of the person doing the release.
+* Edit `targets/{target}/debian/control` and change *Maintainer* to yourself. This step isn't necessary, but it's good to keep an accurate log of the person doing the release.
+* If uploading to LaunchPad, you should create or import a GPG key for signing the package:
+  * https://help.launchpad.net/YourAccount/ImportingYourPGPKey
+  * If using an existing key, import it into your Vagrant instance
 * Run the packaging script: `./create-deb.sh`
 
 When running the script, you will be asked whether you want to upload the build(s) to LaunchPad. The OpenHIE PPA (https://launchpad.net/~openhie) should be used for all official releases.

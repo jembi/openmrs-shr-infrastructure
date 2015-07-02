@@ -6,6 +6,15 @@ Exec {
   user => 'root',
 }
 
+# Packaging dependencies
+package { "build-essential":
+  ensure => latest
+}
+
+package { "devscripts":
+  ensure => latest
+}
+
 # Install MySQL
 package { "mysql-server":
   ensure => latest
