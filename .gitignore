@@ -2,3 +2,5 @@
 artifacts/*.omod
 artifacts/*.gz
 artifacts/openmrs.war
+artifacts/tomcat.tar.gz
+packaging/builds

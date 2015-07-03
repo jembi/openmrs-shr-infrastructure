@@ -1,0 +1,70 @@
+#!/bin/bash
+
+MYSQL='/usr/bin/env mysql'
+GUNZIP='/usr/bin/env gunzip'
+
+SYSTEMUSER=openshr
+OPENSHR_DIR=/usr/share/openshr
+OPENMRS_RUNTIMEPROPS=$OPENSHR_DIR/openmrs/openmrs-runtime.properties
+
+OPENMRS_USER=openshr_user
+# Generate random openmrs user password
+OPENMRS_PASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c32`
+
+. /usr/share/debconf/confmodule
+
+
+db_get openshr/mysqlHost
+MYSQL_HOST=$RET
+db_get openshr/mysqlPort
+MYSQL_PORT=$RET
+db_get openshr/mysqlUser
+MYSQL_USER=$RET
+db_get openshr/mysqlPass
+MYSQL_PASS=$RET
+
+
+
+db_get openshr/mysqlDBExists
+if [ "$RET" = "true" ]; then
+    db_get openshr/mysqlDBName
+    MYSQL_DBNAME=$RET
+else
+    db_get openshr/mysqlDBNameNew
+    MYSQL_DBNAME=$RET
+
+    echo "Creating database '${MYSQL_DBNAME}' ..."
+    $MYSQL -u$MYSQL_USER -p$MYSQL_PASS -e "CREATE DATABASE ${MYSQL_DBNAME};"
+
+    echo "Initializing database '${MYSQL_DBNAME}' ..."
+    cat $OPENSHR_DIR/openmrs.sql.gz | $GUNZIP | $MYSQL $MYSQL_DBNAME -u$MYSQL_USER -p$MYSQL_PASS
+fi
+
+
+echo "Creating database user '${OPENMRS_USER}' ..."
+$MYSQL -u$MYSQL_USER -p$MYSQL_PASS -e "CREATE USER '${OPENMRS_USER}'@'${MYSQL_HOST}' IDENTIFIED BY '${OPENMRS_PASS}'; FLUSH PRIVILEGES;"
+if [ $? -ne 0 ]; then
+    echo "[WARNING] User '${OPENMRS_USER}' already exists. Resetting password ..."
+    $MYSQL mysql -u$MYSQL_USER -p$MYSQL_PASS -e "UPDATE user SET password=PASSWORD('${OPENMRS_PASS}') WHERE USER='${OPENMRS_USER}'; FLUSH PRIVILEGES;"
+fi
+$MYSQL -u$MYSQL_USER -p$MYSQL_PASS -e "GRANT ALL PRIVILEGES ON ${MYSQL_DBNAME}.* TO '${OPENMRS_USER}'@'${MYSQL_HOST}'; FLUSH PRIVILEGES;"
+
+
+echo "connection.url=jdbc\\:mysql\\://${MYSQL_HOST}\\:${MYSQL_PORT}/${MYSQL_DBNAME}?autoReconnect\\=true&sessionVariables\\=storage_engine\\=InnoDB&useUnicode\\=true&characterEncoding\\=UTF-8" >> $OPENMRS_RUNTIMEPROPS
+echo "connection.username=${OPENMRS_USER}" >> $OPENMRS_RUNTIMEPROPS
+echo "connection.password=${OPENMRS_PASS}" >> $OPENMRS_RUNTIMEPROPS
+
+
+db_set openshr/setupMysql false
+db_set openshr/mysqlPass ""
+
+
+echo "Setting required directories and permissions ..."
+# really ugly /null dir needed for xds module
+mkdir -p /null/xdslog/sentMessages
+chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openmrs
+chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/tomcat
+chown -R $SYSTEMUSER:$SYSTEMUSER /null
+
+
+service openshr start

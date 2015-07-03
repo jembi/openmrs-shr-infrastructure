@@ -1,0 +1,11 @@
+openshr (0.1.0-13~trusty) trusty; urgency=medium
+
+  * Release Debian Build 0.1.0-13
+
+ -- Hannes Venter <hannes@jembi.org>  Thu, 02 Jul 2015 15:37:28 +0000
+
+openshr (0.1.0-12~trusty) trusty; urgency=medium
+
+  * Release Debian Build 0.1.0-12
+
+ -- Hannes Venter <hannes@jembi.org>  Thu, 02 Jul 2015 13:09:23 +0000
