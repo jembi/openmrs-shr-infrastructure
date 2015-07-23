@@ -6,6 +6,8 @@ GUNZIP='/usr/bin/env gunzip'
 SYSTEMUSER=openshr
 OPENSHR_DIR=/usr/share/openshr
 OPENMRS_RUNTIMEPROPS=$OPENSHR_DIR/openmrs/openmrs-runtime.properties
+OPENXDS_PROPS=$OPENSHR_DIR/openxds/openxds.properties
+OMAR_PROPS=$OPENSHR_DIR/openxds/omar.properties
 
 OPENMRS_USER=openshr_user
 # Generate random openmrs user password
@@ -59,12 +61,30 @@ db_set openshr/setupMysql false
 db_set openshr/mysqlPass ""
 
 
+echo "Setting up OpenXDS databases"
+db_get openshr/psqlHost
+PSQL_HOST=$RET
+db_get openshr/psqlPort
+PSQL_PORT=$RET
+sed -i -e s/localhost:5432/$PSQL_HOST:$PSQL_PORT/g $OPENXDS_PROPS
+sed -i -e s/localhost:5432/$PSQL_HOST:$PSQL_PORT/g $OMAR_PROPS
+
+db_get openshr/psqlDBExists
+if [ "$RET" = "false"  ]; then
+    sudo -u postgres psql -c "create database openxds;"
+    sudo -u postgres psql openxds -c "CREATE USER openxds WITH PASSWORD 'openxds'; GRANT ALL PRIVILEGES ON DATABASE openxds to openxds;"
+    sudo -u postgres psql openxds < $OPENSHR_DIR/openxds/misc/create_database_schema_postgres.sql
+    sudo -u postgres psql -c "create database log2;"
+    sudo -u postgres psql log2 -c "CREATE USER logs WITH PASSWORD 'xdslogs'; GRANT ALL PRIVILEGES ON DATABASE log2 to logs;"
+fi
+
 echo "Setting required directories and permissions ..."
 # really ugly /null dir needed for xds module
 mkdir -p /null/xdslog/sentMessages
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openmrs
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/tomcat
 chown -R $SYSTEMUSER:$SYSTEMUSER /null
+chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openxds
 
-
-service openshr start
+service openshr-rep restart
+service openshr-reg restart

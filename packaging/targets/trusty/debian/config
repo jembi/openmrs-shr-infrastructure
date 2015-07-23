@@ -17,4 +17,9 @@ if [ "$RET" = "true" ]; then
 else
     db_input critical openshr/mysqlDBNameNew || true
 fi
+
+db_input critical openshr/psqlDBExists || true
+db_input critical openshr/psqlHost || true
+db_input critical openshr/psqlPort || true
+
 db_go || true
