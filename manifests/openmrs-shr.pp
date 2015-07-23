@@ -222,6 +222,18 @@ exec { "extract-openxds-to-opt":
   require => [ Exec["fetch-openxds-distribution"], File["/opt/openxds"] ],
 }
 
+# set IheActors.xml config file
+file { "/opt/openxds/conf/actors/IheActors.xml":
+  source  => "/vagrant/artifacts/IheActors.xml",
+  require => Exec["extract-openxds-to-opt"],
+}
+
+# set XdsCodes.xml config file
+file { "/opt/openxds/conf/actors/XdsCodes.xml":
+  source  => "/vagrant/artifacts/XdsCodes.xml",
+  require => Exec["extract-openxds-to-opt"],
+}
+
 # Install Postgres
 package { "postgresql":
   ensure => latest,
@@ -266,5 +278,5 @@ exec { "create-postgres-logs-user":
 exec { "start-openxds":
   command => "sudo /usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/java -jar openxds-1.0.1.jar &",
   cwd => "/opt/openxds",
-  require => [ Exec["setup-openxds-db"], Exec["extract-openxds-to-opt"], Package["openjdk-7-jre"] ],
+  require => [ Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], File["/opt/openxds/conf/actors/XdsCodes.xml"], Package["openjdk-7-jre"] ],
 }
