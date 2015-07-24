@@ -6,10 +6,14 @@ GUNZIP='/usr/bin/env gunzip'
 SYSTEMUSER=openshr
 OPENSHR_DIR=/usr/share/openshr
 OPENMRS_RUNTIMEPROPS=$OPENSHR_DIR/openmrs/openmrs-runtime.properties
+OPENXDS_PROPS=$OPENSHR_DIR/openxds/openxds.properties
+OMAR_PROPS=$OPENSHR_DIR/openxds/omar.properties
 
 OPENMRS_USER=openshr_user
-# Generate random openmrs user password
+# Generate random user passwords
 OPENMRS_PASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c32`
+OPENXDS_PASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c32`
+LOG2_PASS=`< /dev/urandom tr -dc A-Za-z0-9 | head -c32`
 
 . /usr/share/debconf/confmodule
 
@@ -59,12 +63,41 @@ db_set openshr/setupMysql false
 db_set openshr/mysqlPass ""
 
 
+echo "Setting up OpenXDS databases"
+db_get openshr/psqlHost
+PSQL_HOST=$RET
+db_get openshr/psqlPort
+PSQL_PORT=$RET
+sudo sed -i -e s/localhost:5432/$PSQL_HOST:$PSQL_PORT/g $OPENXDS_PROPS
+sudo sed -i -e s/localhost:5432/$PSQL_HOST:$PSQL_PORT/g $OMAR_PROPS
+
+db_get openshr/psqlDBExists
+if [ "$RET" = "false"  ]; then
+    sudo -u postgres psql -c "create database openxds;"
+    sudo -u postgres psql openxds -c "CREATE USER openxds WITH PASSWORD '${OPENXDS_PASS}'; GRANT ALL PRIVILEGES ON DATABASE openxds to openxds;"
+    sudo -u postgres psql openxds < $OPENSHR_DIR/openxds/misc/create_database_schema_postgres.sql > /dev/null 2>$1
+    sudo -u postgres psql -c "create database log2;"
+    sudo -u postgres psql log2 -c "CREATE USER logs WITH PASSWORD '${LOG2_PASS}'; GRANT ALL PRIVILEGES ON DATABASE log2 to logs;"
+    sudo sed -i -e s/openxds.db.password=openxds/openxds.db.password=${OPENXDS_PASS}/g $OPENXDS_PROPS
+    sudo sed -i -e s/logs.db.password=xdslogs/logs.db.password=${LOG2_PASS}/g $OPENXDS_PROPS
+    sudo sed -i -e s/omar.persistence.rdb.databaseUserPassword=openxds/omar.persistence.rdb.databaseUserPassword=${OPENXDS_PASS}/g $OMAR_PROPS
+else
+    db_get openshr/psqlOpenXDSPass
+    OPENXDS_PASS=$RET
+    db_get openshr/psqlLog2Pass
+    LOG2_PASS=$RET
+    sudo sed -i -e s/openxds.db.password=openxds/openxds.db.password=$OPENXDS_PASS/g $OPENXDS_PROPS
+    sudo sed -i -e s/logs.db.password=xdslogs/logs.db.password=$LOG2_PASS/g $OPENXDS_PROPS
+    sudo sed -i -e s/omar.persistence.rdb.databaseUserPassword=openxds/omar.persistence.rdb.databaseUserPassword=$OPENXDS_PASS/g $OMAR_PROPS
+fi
+
 echo "Setting required directories and permissions ..."
 # really ugly /null dir needed for xds module
 mkdir -p /null/xdslog/sentMessages
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openmrs
 chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/tomcat
 chown -R $SYSTEMUSER:$SYSTEMUSER /null
+chown -R $SYSTEMUSER:$SYSTEMUSER $OPENSHR_DIR/openxds
 
-
-service openshr start
+service openshr-rep start
+service openshr-reg start

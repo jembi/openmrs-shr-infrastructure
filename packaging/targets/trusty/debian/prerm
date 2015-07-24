@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 
-service openshr stop || true
+service openshr-rep stop || true
+service openshr-reg stop || true

@@ -36,18 +36,16 @@ exec { "set-java8-default":
   require => Exec["install-java8"]
 }
 
-# Install Tomcat 7
-package { "tomcat7":
-  ensure => latest,
+# set tomcat7 default - use java 8
+file { "/etc/default/tomcat7":
+  source  => "/vagrant/artifacts/tomcat7-defaults",
   require => Exec["set-java8-default"]
 }
 
-# Fix Tomcat 7 to work with Java 8
-exec { "fix-tomcat7":
-  command => "sudo sed -i 's/\\(JDK_DIRS=.*\\)\"/\\1\\ \\/usr\\/lib\\/jvm\\/java\\-8\\-oracle\"/g' /etc/init.d/tomcat7",
-  timeout => 0,
-  require => Package["tomcat7"],
-  notify => Service["tomcat7"]
+# Install Tomcat 7
+package { "tomcat7":
+  ensure => latest,
+  require => File["/etc/default/tomcat7"]
 }
 
 # Fetch modules
@@ -203,4 +201,91 @@ exec { "setup-document-directory":
 exec { "setup-document-permissions":
   command => "sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/null",
   require => Exec["setup-document-directory"]
+}
+
+### Install OpenXDS ###
+
+# Fetch OpenXDS
+exec { "fetch-openxds-distribution":
+  command => "wget -O /vagrant/artifacts/openxds.tar.gz --no-check-certificate https://www.projects.openhealthtools.org/sf/frs/do/downloadFile/projects.openxds/frs.openxds_releases.openxds_1_0_1/frs1051?dl=1",
+  creates => "/vagrant/artifacts/openxds.tar.gz",
+  timeout => 0,
+}
+
+file { "/opt/openxds":
+  ensure => directory,
+  owner => "vagrant",
+}
+
+exec { "extract-openxds-to-opt":
+  command => "tar xvzf /vagrant/artifacts/openxds.tar.gz",
+  cwd => "/opt/openxds",
+  require => [ Exec["fetch-openxds-distribution"], File["/opt/openxds"] ],
+}
+
+# set IheActors.xml config file
+file { "/opt/openxds/conf/actors/IheActors.xml":
+  source  => "/vagrant/artifacts/IheActors.xml",
+  require => Exec["extract-openxds-to-opt"],
+}
+
+# set XdsCodes.xml config file
+file { "/opt/openxds/conf/actors/XdsCodes.xml":
+  source  => "/vagrant/artifacts/XdsCodes.xml",
+  require => Exec["extract-openxds-to-opt"],
+}
+
+# Install Postgres
+package { "postgresql":
+  ensure => latest,
+}
+
+# Install java 7 - OpenXDS fails to run on java 8 atm
+package { "openjdk-7-jre":
+  ensure => latest,
+}
+
+# Create postgres openxds database
+exec { "create-postgres-openxds-db":
+  command => "sudo -u postgres createdb openxds",
+  require => Package["postgresql"],
+}
+
+# Create postgres openxds user and grant
+exec { "create-postgres-openxds-user":
+  command => "sudo -u postgres psql openxds -c \"CREATE USER openxds WITH PASSWORD 'openxds'; GRANT ALL PRIVILEGES ON DATABASE openxds to openxds;\"",
+  require => Exec["create-postgres-openxds-db"],
+}
+
+# Setup OpenXDS db
+exec { "setup-openxds-db":
+  command => "sudo -u postgres psql openxds < /opt/openxds/misc/create_database_schema_postgres.sql",
+  require => [ Exec["create-postgres-openxds-user"], Exec["extract-openxds-to-opt"] ],
+}
+
+# Create postgres log2 database
+exec { "create-postgres-log2-db":
+  command => "sudo -u postgres createdb log2",
+  require => Package["postgresql"],
+}
+
+# Create postgres logs user and grant
+exec { "create-postgres-logs-user":
+  command => "sudo -u postgres psql log2 -c \"CREATE USER logs WITH PASSWORD 'xdslogs'; GRANT ALL PRIVILEGES ON DATABASE log2 to logs;\"",
+  require => Exec["create-postgres-log2-db"],
+}
+
+# Install openxds service
+file { "/etc/init/openxds.conf":
+  source => "/vagrant/artifacts/openxds.conf",
+  owner => "root",
+  group => "root",
+}
+
+# Start OpenXDS
+service { "openxds":
+    ensure  => "running",
+    enable  => "true",
+    provider => "upstart",
+    require => [ File["/etc/init/openxds.conf"], Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], File["/opt/openxds/conf/actors/XdsCodes.xml"], Package["openjdk-7-jre"] ]
 }

@@ -9,7 +9,7 @@ Homepage: https://github.com/jembi/openshr
 
 Package: openshr
 Architecture: all
-Depends: oracle-java8-installer, mysql-client, mysql-server, debconf
+Depends: oracle-java8-installer, mysql-client, mysql-server, debconf, postgresql
 Recommends: 
 Description: OpenHIE Shared Health Record for storing patient clinical data
  The OpenSHR is a shared health record (SHR) that allows clinical data to be

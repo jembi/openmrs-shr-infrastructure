@@ -32,3 +32,28 @@ Template: openshr/mysqlDBNameNew
 Type: string
 Default: openshr
 Description: A new OpenSHR database will be initialized. Enter a name for the database:
+
+Template: openshr/psqlDBExists
+Type: boolean
+Default: false
+Description: Would you like to use an existing postgres databases for the xds registry, if not new ones will be created for you?
+
+Template: openshr/psqlHost
+Type: string
+Default: localhost
+Description: Enter the postgres server host:
+
+Template: openshr/psqlPort
+Type: string
+Default: 5432
+Description: Enter the postgres server port:
+
+Template: openshr/psqlOpenXDSPass
+Type: string
+Default:
+Description: Enter the password of the openxds user for the openxds database:
+
+Template: openshr/psqlLog2Pass
+Type: string
+Default:
+Description: Enter the password of the logs user on the log2 database:

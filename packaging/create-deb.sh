@@ -105,17 +105,17 @@ do
 
     cp $ARTIFACTS/*.omod $OPENSHRDIR/openmrs/modules/
     cp $ARTIFACTS/openmrs.sql.gz $OPENSHRDIR/
-    
+
 
     echo "Bundling Tomcat 7 ..."
 
     TOMCATDIR=$OPENSHRDIR/tomcat
     if [ ! -f $ARTIFACTS/tomcat.tar.gz ]; then 
-        $WGET http://www.us.apache.org/dist/tomcat/tomcat-7/v7.0.62/bin/apache-tomcat-7.0.62.tar.gz -O $ARTIFACTS/tomcat.tar.gz
+        $WGET http://www.us.apache.org/dist/tomcat/tomcat-7/v7.0.63/bin/apache-tomcat-7.0.63.tar.gz -O $ARTIFACTS/tomcat.tar.gz
     fi
 
     tar -C $OPENSHRDIR -zxf $ARTIFACTS/tomcat.tar.gz
-    mv $OPENSHRDIR/apache-tomcat-7.0.62 $TOMCATDIR
+    mv $OPENSHRDIR/apache-tomcat-7.0.63 $TOMCATDIR
 
     # setup webapps
     rm -fR $TOMCATDIR/webapps/docs
@@ -124,6 +124,20 @@ do
     rm -fR $TOMCATDIR/webapps/manager
     cp $ARTIFACTS/openmrs.war $TOMCATDIR/webapps
 
+
+    echo "Bundling OpenXDS ..."
+    tar -C $OPENSHRDIR/openxds -zxf $ARTIFACTS/openxds.tar.gz
+    cp $ARTIFACTS/IheActors.xml $OPENSHRDIR/openxds/conf/actors/
+    cp $ARTIFACTS/XdsCodes.xml $OPENSHRDIR/openxds/conf/actors/
+
+    echo "Bundling java 7 for OpenXDS ..."
+    JAVA7DIR=$OPENSHRDIR/java7
+    if [ ! -f $ARTIFACTS/jre7.tar.gz ]; then 
+        $WGET http://www.java.net/download/jdk7u80/archive/b05/binaries/jre-7u80-ea-bin-b05-linux-x64-20_jan_2015.tar.gz -O $ARTIFACTS/jre7.tar.gz
+    fi
+
+    tar -C $OPENSHRDIR -zxf $ARTIFACTS/jre7.tar.gz
+    mv $OPENSHRDIR/jre1.7.0_80 $JAVA7DIR
 
     cd $PKGDIR
     if [[ "$UPLOAD" == "y" || "$UPLOAD" == "Y" ]] && [[ -n "${DEB_SIGN_KEYID}" && -n "{$LAUNCHPADPPALOGIN}" ]]; then
