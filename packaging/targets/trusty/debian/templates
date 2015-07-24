@@ -47,3 +47,13 @@ Template: openshr/psqlPort
 Type: string
 Default: 5432
 Description: Enter the postgres server port:
+
+Template: openshr/psqlOpenXDSPass
+Type: string
+Default:
+Description: Enter the password of the openxds user for the openxds database:
+
+Template: openshr/psqlLog2Pass
+Type: string
+Default:
+Description: Enter the password of the logs user on the log2 database:

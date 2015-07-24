@@ -130,7 +130,7 @@ do
     cp $ARTIFACTS/IheActors.xml $OPENSHRDIR/openxds/conf/actors/
     cp $ARTIFACTS/XdsCodes.xml $OPENSHRDIR/openxds/conf/actors/
 
-    echo "Bundling java 7 for OpenXDS"
+    echo "Bundling java 7 for OpenXDS ..."
     JAVA7DIR=$OPENSHRDIR/java7
     if [ ! -f $ARTIFACTS/jre7.tar.gz ]; then 
         $WGET http://www.java.net/download/jdk7u80/archive/b05/binaries/jre-7u80-ea-bin-b05-linux-x64-20_jan_2015.tar.gz -O $ARTIFACTS/jre7.tar.gz
