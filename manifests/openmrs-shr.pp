@@ -214,6 +214,7 @@ exec { "fetch-openxds-distribution":
 
 file { "/opt/openxds":
   ensure => directory,
+  owner => "vagrant",
 }
 
 exec { "extract-openxds-to-opt":
@@ -274,9 +275,17 @@ exec { "create-postgres-logs-user":
   require => Exec["create-postgres-log2-db"],
 }
 
+# Install openxds service
+file { "/etc/init/openxds.conf":
+  source => "/vagrant/artifacts/openxds.conf",
+  owner => "root",
+  group => "root",
+}
+
 # Start OpenXDS
-exec { "start-openxds":
-  command => "sudo /usr/lib/jvm/java-1.7.0-openjdk-amd64/bin/java -jar openxds-1.0.1.jar &",
-  cwd => "/opt/openxds",
-  require => [ Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], File["/opt/openxds/conf/actors/XdsCodes.xml"], Package["openjdk-7-jre"] ],
+service { "openxds":
+    ensure  => "running",
+    enable  => "true",
+    provider => "upstart",
+    require => [ File["/etc/init/openxds.conf"], Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], File["/opt/openxds/conf/actors/XdsCodes.xml"], Package["openjdk-7-jre"] ]
 }
