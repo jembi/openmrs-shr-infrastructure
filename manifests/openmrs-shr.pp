@@ -38,7 +38,7 @@ exec { "set-java8-default":
 
 # set tomcat7 default - use java 8
 file { "/etc/default/tomcat7":
-  source  => "/vagrant/artifacts/tomcat7-defaults",
+  source  => "/vagrant/artifacts/static/tomcat7-defaults",
   require => Exec["set-java8-default"]
 }
 
@@ -50,8 +50,8 @@ package { "tomcat7":
 
 # Fetch modules
 exec { "fetch-xds-b-module":
-  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/xds-b-repository-0.4.6-SNAPSHOT.omod",
-  creates => "/vagrant/artifacts/xds-b-repository-0.4.6-SNAPSHOT.omod",
+  command => "wget -O /vagrant/artifacts/xds-b-repository.omod `curl -s https://api.github.com/repos/jembi/openmrs-module-shr-xds-b-repository/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+  creates => "/vagrant/artifacts/xds-b-repository.omod",
   timeout => 0
 }
 
@@ -62,26 +62,26 @@ exec { "fetch-webservices-module":
 }
 
 exec { "fetch-contenthandler-module":
-  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-contenthandler-3.0.0-SNAPSHOT.omod",
-  creates => "/vagrant/artifacts/shr-contenthandler-3.0.0-SNAPSHOT.omod",
+  command => "wget -O /vagrant/artifacts/shr-contenthandler.omod `curl -s https://api.github.com/repos/jembi/openmrs-module-shr-contenthandler/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+  creates => "/vagrant/artifacts/shr-contenthandler.omod",
   timeout => 0
 }
 
 exec { "fetch-odd-module":
-  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-odd-0.5.1.omod",
-  creates => "/vagrant/artifacts/shr-odd-0.5.1.omod",
+  command => "wget -O /vagrant/artifacts/shr-odd.omod `curl -s https://api.github.com/repos/jembi/openmrs-module-shr-odd/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+  creates => "/vagrant/artifacts/shr-odd.omod",
   timeout => 0
 }
 
 exec { "fetch-cdahandler-module":
-  command => "wget -P /vagrant/artifacts/ https://s3.amazonaws.com/openshr/shr-cdahandler-0.6.0.omod",
-  creates => "/vagrant/artifacts/shr-cdahandler-0.6.0.omod",
+  command => "wget -O /vagrant/artifacts/shr-cdahandler.omod `curl -s https://api.github.com/repos/jembi/openmrs-module-shr-cdahandler/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+  creates => "/vagrant/artifacts/shr-cdahandler.omod",
   timeout => 0
 }
 
 exec { "fetch-atna-module":
-  command => "wget -P /vagrant/artifacts/ https://github.com/jembi/openmrs-module-shr-atna/releases/download/v0.5.0/shr-atna-0.5.0.omod",
-  creates => "/vagrant/artifacts/shr-atna-0.5.0.omod",
+  command => "wget -O /vagrant/artifacts/shr-atna.omod `curl -s https://api.github.com/repos/jembi/openmrs-module-shr-atna/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
+  creates => "/vagrant/artifacts/shr-atna.omod",
   timeout => 0
 }
 
@@ -184,7 +184,7 @@ service { "tomcat7":
 
 # Configure Tomcat memory
 file { "/usr/share/tomcat7/bin/setenv.sh":
-  source  => "/vagrant/artifacts/setenv.sh",
+  source  => "/vagrant/artifacts/static/setenv.sh",
   owner => "tomcat7",
   group   => "tomcat7",
   mode  => "a+x",
@@ -207,7 +207,7 @@ exec { "setup-document-permissions":
 
 # Fetch OpenXDS
 exec { "fetch-openxds-distribution":
-  command => "wget -O /vagrant/artifacts/openxds.tar.gz --no-check-certificate https://www.projects.openhealthtools.org/sf/frs/do/downloadFile/projects.openxds/frs.openxds_releases.openxds_1_0_1/frs1051?dl=1",
+  command => "wget -O /vagrant/artifacts/openxds.tar.gz `curl -s https://api.github.com/repos/jembi/openxds/releases | grep browser_download_url | head -n 1 | cut -d '\"' -f 4`",
   creates => "/vagrant/artifacts/openxds.tar.gz",
   timeout => 0,
 }
@@ -225,13 +225,7 @@ exec { "extract-openxds-to-opt":
 
 # set IheActors.xml config file
 file { "/opt/openxds/conf/actors/IheActors.xml":
-  source  => "/vagrant/artifacts/IheActors.xml",
-  require => Exec["extract-openxds-to-opt"],
-}
-
-# set XdsCodes.xml config file
-file { "/opt/openxds/conf/actors/XdsCodes.xml":
-  source  => "/vagrant/artifacts/XdsCodes.xml",
+  source  => "/vagrant/artifacts/static/IheActors.xml",
   require => Exec["extract-openxds-to-opt"],
 }
 
@@ -277,7 +271,7 @@ exec { "create-postgres-logs-user":
 
 # Install openxds service
 file { "/etc/init/openxds.conf":
-  source => "/vagrant/artifacts/openxds.conf",
+  source => "/vagrant/artifacts/static/openxds.conf",
   owner => "root",
   group => "root",
 }
@@ -287,5 +281,5 @@ service { "openxds":
     ensure  => "running",
     enable  => "true",
     provider => "upstart",
-    require => [ File["/etc/init/openxds.conf"], Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], File["/opt/openxds/conf/actors/XdsCodes.xml"], Package["openjdk-7-jre"] ]
+    require => [ File["/etc/init/openxds.conf"], Exec["setup-openxds-db"], File["/opt/openxds/conf/actors/IheActors.xml"], Package["openjdk-7-jre"] ]
 }

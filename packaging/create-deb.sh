@@ -127,8 +127,7 @@ do
 
     echo "Bundling OpenXDS ..."
     tar -C $OPENSHRDIR/openxds -zxf $ARTIFACTS/openxds.tar.gz
-    cp $ARTIFACTS/IheActors.xml $OPENSHRDIR/openxds/conf/actors/
-    cp $ARTIFACTS/XdsCodes.xml $OPENSHRDIR/openxds/conf/actors/
+    cp $ARTIFACTS/static/IheActors.xml $OPENSHRDIR/openxds/conf/actors/
 
     echo "Bundling java 7 for OpenXDS ..."
     JAVA7DIR=$OPENSHRDIR/java7

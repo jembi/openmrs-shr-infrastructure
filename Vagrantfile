@@ -16,6 +16,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8080, host: 8082
   config.vm.network "forwarded_port", guest: 8010, host: 8010
   config.vm.network "forwarded_port", guest: 3602, host: 3602
+  config.vm.network "forwarded_port", guest: 8000, host: 8000
 
   # Ensure packages are up to date
   config.vm.provision :shell do |shell|
