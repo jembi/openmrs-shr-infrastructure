@@ -40,7 +40,7 @@ echo -n "Would you like to update the version number? [y/N] "
 read INCSHRVER
 if [[ "$INCSHRVER" == "y" || "$INCSHRVER" == "Y" ]];  then
     echo -n "Enter a new version number: "
-    read SHRVER
+    read OPENSHR_VERSION
 fi
 
 
