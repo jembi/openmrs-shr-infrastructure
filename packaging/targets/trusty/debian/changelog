@@ -1,3 +1,9 @@
+openshr (1.0.0-1~trusty) trusty; urgency=medium
+
+  * Release Debian Build 1.0.0-1
+
+ -- Ryan Crichton <ryan@jembi.org>  Fri, 07 Aug 2015 08:35:17 +0200
+
 openshr (0.1.0-13~trusty) trusty; urgency=medium
 
   * Release Debian Build 0.1.0-13
